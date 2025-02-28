@@ -10,7 +10,6 @@ const PORT = process.env.PORT || 3000;
 const staticDir = process.env.STATIC_DIR || "public";
 
 const { MONGO_USER, MONGO_PWD, MONGO_CLUSTER, DB_NAME } = process.env;
-const mongoClient = "";
 
 async function setUpServer() {
     const connectionStringRedacted = `mongodb+srv://${MONGO_USER}:<password>@${MONGO_CLUSTER}/${DB_NAME}`;
@@ -42,7 +41,7 @@ async function setUpServer() {
     });
     
     app.get("*", (req: Request, res: Response, next) => {
-        res.sendFile(path.resolve(staticDir, "index.html"));
+        res.sendFile(path.resolve(__dirname, staticDir, "index.html"));
     });
     
     app.listen(PORT, () => {
