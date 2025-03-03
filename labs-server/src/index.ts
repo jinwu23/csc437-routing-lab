@@ -4,6 +4,7 @@ import path from "path";
 import { MongoClient } from "mongodb"
 
 import { ImageProvider } from "./ImageProvider";
+import { registerImageRoutes } from "./routes/images";
 
 dotenv.config(); // Read the .env file in the current working directory, and load values into process.env.
 const PORT = process.env.PORT || 3000;
@@ -21,27 +22,18 @@ async function setUpServer() {
     const collectionInfos = await mongoClient.db().listCollections().toArray();
     console.log(collectionInfos.map(collectionInfo => collectionInfo.name)); // For debug only
 
-    const imageProvider = new ImageProvider(mongoClient);
-
     const app = express();
     app.use(express.static(staticDir));
+    app.use(express.json());
     
     app.get("/hello", (req: Request, res: Response) => {
         res.send("Hello, World");
     });
     
-    app.get("/api/images", async (req: Request, res: Response) => {
-        try {
-            const images = await imageProvider.getAllImages();
-            res.json(images);
-        } catch (error) {
-            res.status(500).json({ error: "Failed to fetch images" });
-        }
-    
-    });
+    registerImageRoutes(app, mongoClient);
     
     app.get("*", (req: Request, res: Response, next) => {
-        res.sendFile(path.resolve(__dirname, staticDir, "index.html"));
+        res.sendFile(path.resolve(staticDir, "index.html"));
     });
     
     app.listen(PORT, () => {
