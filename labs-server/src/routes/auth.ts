@@ -57,7 +57,7 @@ export function registerAuthRoutes(app: express.Application, mongoClient: MongoC
         if (!username || !password) {
             res.status(400).send({
                 error: "Bad Request",
-                message: "Missing username of password"
+                message: "Missing username or password"
             });
         }
         const success = await credentialsProvider.registerUser(username, password);
@@ -66,9 +66,9 @@ export function registerAuthRoutes(app: express.Application, mongoClient: MongoC
                 error: "Username already taken",
                 message: "Please choose a different username"
             });
+        } else {
+            res.status(201).send({message: "New user created"});
         }
-
-        res.status(201).send();
     });
 
     app.post("/auth/login", async (req: Request, res: Response) => {

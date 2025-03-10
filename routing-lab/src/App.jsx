@@ -8,6 +8,8 @@ import { AccountSettings } from "./AccountSettings";
 import { ImageGallery } from "./images/ImageGallery.jsx";
 import { ImageDetails } from "./images/ImageDetails.jsx";
 import { MainLayout } from "./MainLayout.jsx";
+import { LoginPage } from "./auth/LoginPage.jsx";
+import { RegisterPage } from "./auth/RegisterPage.jsx";
 
 function App() {
     const [accountName, setAccountName] = useState("John Doe");
@@ -21,6 +23,8 @@ function App() {
                 <Route path='/images' element={<ImageGallery isLoading={isLoading} fetchedImages={fetchedImages} />} />
                 <Route path='/images/:imageId' element={<ImageDetails />} />
             </Route>
+            <Route path='/login' element={<LoginPage />} />
+            <Route path='/register' element={<RegisterPage />} />
         </Routes>
     );
 }
