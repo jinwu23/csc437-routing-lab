@@ -1,10 +1,11 @@
 import { useParams } from "react-router";
 import { MainLayout } from "../MainLayout.jsx";
 import { useImageFetching } from "./useImageFetching.js";
+import PropTypes from "prop-types";
 
-export function ImageDetails(props) {
+export function ImageDetails({authToken}) {
   const { imageId } = useParams();
-  const { isLoading, fetchedImages } = useImageFetching(imageId);
+  const { isLoading, fetchedImages } = useImageFetching(imageId, authToken);
   if (isLoading) {
     return <p>Loading...</p>;
   }
@@ -24,3 +25,7 @@ export function ImageDetails(props) {
     </>
   );
 }
+
+ImageDetails.propTypes = {
+  authToken: PropTypes.string,
+};

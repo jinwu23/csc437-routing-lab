@@ -67,7 +67,15 @@ export function registerAuthRoutes(app: express.Application, mongoClient: MongoC
                 message: "Please choose a different username"
             });
         } else {
-            res.status(201).send({message: "New user created"});
+            try {
+                const createdToken = await generateAuthToken(username);
+                res.status(200).send({ token: createdToken });
+            } catch (error) {
+                res.status(500).send({
+                    error: "Internal server error",
+                    message: "Failed to generate authentication token"
+                })
+            }
         }
     });
 

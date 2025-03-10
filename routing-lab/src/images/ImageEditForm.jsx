@@ -1,6 +1,7 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 
-export function ImageEditForm() {
+export function ImageEditForm({ authToken }) {
   const [imageId, setImageId] = useState("");
   const [imageName, setImageName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +14,7 @@ export function ImageEditForm() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`,
         },
         body: JSON.stringify({ name: imageName }),
       });
@@ -55,3 +57,7 @@ export function ImageEditForm() {
     </div>
   );
 }
+
+ImageEditForm.propTypes = {
+    authToken: PropTypes.string,
+};
