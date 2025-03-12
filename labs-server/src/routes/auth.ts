@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 export function verifyAuthToken(
     req: Request,
     res: Response,
-    next: NextFunction // Call next() to run the next middleware or request handler
+    next: NextFunction 
 ) {
     const signatureKey = process.env.JWT_SECRET
     if (!signatureKey) {
@@ -60,6 +60,7 @@ export function registerAuthRoutes(app: express.Application, mongoClient: MongoC
                 error: "Bad Request",
                 message: "Missing username or password"
             });
+            return;
         }
         const success = await credentialsProvider.registerUser(username, password);
         if (!success) {
@@ -67,15 +68,18 @@ export function registerAuthRoutes(app: express.Application, mongoClient: MongoC
                 error: "Username already taken",
                 message: "Please choose a different username"
             });
+            return;
         } else {
             try {
                 const createdToken = await generateAuthToken(username);
                 res.status(200).send({ token: createdToken });
+                return;
             } catch (error) {
                 res.status(500).send({
                     error: "Internal server error",
                     message: "Failed to generate authentication token"
-                })
+                });
+                return;
             }
         }
     });
@@ -87,23 +91,27 @@ export function registerAuthRoutes(app: express.Application, mongoClient: MongoC
                 error: "Bad Request",
                 message: "Missing username of password"
             });
+            return;
         }
         const success = await credentialsProvider.verifyPassword(username, password);
         if (success) {
             try {
                 const createdToken = await generateAuthToken(username);
                 res.status(200).send({ token: createdToken });
+                return;
             } catch (error) {
                 res.status(500).send({
                     error: "Internal server error",
                     message: "Failed to generate authentication token"
                 })
+                return;
             }
         } else {
             res.status(401).send({
                 error: "Unauthorized",
                 message: "Incorrect username or password"
             });
+            return;
         }
     });
 
