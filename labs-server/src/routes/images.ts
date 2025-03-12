@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { ImageProvider } from "../ImageProvider";
+import { handleImageFileErrors, imageMiddlewareFactory } from "../middleware/imageUploadMiddleware";
 
 export function registerImageRoutes(app: express.Application, mongoClient: MongoClient) {
     const imageProvider = new ImageProvider(mongoClient);
@@ -120,4 +121,51 @@ export function registerImageRoutes(app: express.Application, mongoClient: Mongo
             return;
         }
     });
+
+
+    app.post(
+        "/api/images",
+        imageMiddlewareFactory.single("image"),
+        handleImageFileErrors,
+        async (req: Request, res: Response) => {
+            // Check if file and name are present 
+            if (!req.file || !req.body.name) {
+                res.status(400).send({
+                    error: "Internal server error",
+                    message: "An unexpected error occurred"
+                });
+                return;
+            }
+            // Extract username from auth token
+            const username = res.locals.token?.username;
+            if (!username) {
+                res.status(401).send({
+                    error: "Unauthorized",
+                    message: "User is not authenticated"
+                });
+                return;
+            }
+            // Create image document
+            const imageDoc = {
+                _id: req.file.filename,
+                src: `/uploads/${req.file.filename}`,
+                name: req.body.name,
+                author: username,
+                likes: 0,
+            }
+
+            try {
+                await imageProvider.createImage(imageDoc);
+                res.status(201).send(imageDoc);
+            } catch (error) {
+                res.status(500).send({
+                    error: "Internal server error",
+                    message: "Failed to create image document"
+                });
+            }
+
+        }
+    )
+
+
 }

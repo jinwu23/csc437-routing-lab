@@ -43,7 +43,7 @@ function App() {
                         </ProtectedRoute>} />
                     <Route path='/images' element={ 
                         <ProtectedRoute authToken={authToken} > 
-                            <ImageGallery isLoading={isLoading} fetchedImages={fetchedImages} /> 
+                        <ImageGallery isLoading={isLoading} fetchedImages={fetchedImages} authToken={authToken} /> 
                         </ProtectedRoute>} />
                     <Route path='/images/:imageId' element={ 
                         <ProtectedRoute authToken={authToken} > 

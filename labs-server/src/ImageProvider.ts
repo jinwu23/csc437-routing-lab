@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from "mongodb";
 
 interface Image {
-    _id: ObjectId;
+    _id: ObjectId | string;
     src: string;
     name: string;
     author: ObjectId | Author;
@@ -19,50 +19,19 @@ export class ImageProvider {
 
     async getAllImages(authorId?: string): Promise<Image[]> {
         const collectionName = process.env.IMAGES_COLLECTION_NAME;
-        const authorsCollectionName = process.env.USERS_COLLECTION_NAME;
-        if (!collectionName || !authorsCollectionName) {
+        if (!collectionName) {
             throw new Error("Missing IMAGES_COLLECTION_NAME from environment variables");
         }
 
         const collection = this.mongoClient.db().collection<Image>(collectionName);
-        
-        // Create the pipeline
-        const pipeline: any[] = [];
-        
-        // Add author filter stage if authorId is provided
+
+        // Create the query
+        const query: any = {};
         if (authorId) {
-            pipeline.push({
-                $match: {
-                    author: authorId // Filter by author ID
-                }
-            });
+            query.author = new ObjectId(authorId); // Filter by author ID if provided
         }
-        
-        // Add the rest of the aggregation stages
-        pipeline.push(
-            {
-                $lookup: {
-                    from: authorsCollectionName,
-                    localField: "author",
-                    foreignField: "_id",
-                    as: "authorDetails",
-                }
-            },
-            {
-                $unwind: "$authorDetails" // Convert authorDetails array to a single object
-            },
-            {
-                $project: {
-                    _id: 1,
-                    src: 1,
-                    name: 1,
-                    author: "$authorDetails", // Replace author ID with full author object
-                    likes: 1,
-                }
-            }
-        );
-        
-        return collection.aggregate<Image>(pipeline).toArray();
+
+        return collection.find(query).toArray();
     }
 
     async updateImageName(imageId: string, newName: string): Promise<number> {
@@ -89,5 +58,22 @@ export class ImageProvider {
 
         // Return the number of documents that matched the filter criteria
         return result.matchedCount;
+    }
+
+    async createImage(image: Image): Promise<void> {
+        const collectionName = process.env.IMAGES_COLLECTION_NAME;
+        if (!collectionName) {
+            throw new Error("Missing IMAGES_COLLECTION_NAME from environment variables");
+        }
+
+        const collection = this.mongoClient.db().collection<Image>(collectionName);
+
+        // Ensure the author field is an ObjectId
+        if (typeof image.author === "object" && "_id" in image.author) {
+            image.author = (image.author as Author)._id; // Extract the _id from the Author object
+        }
+
+        // Insert the image document into the collection
+        await collection.insertOne(image);
     }
 }
